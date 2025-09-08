@@ -1,6 +1,7 @@
 <?php
 
 include "../includes/db.php";
+include "../includes/time_helper.php";
 
 session_start();
 //user session
@@ -11,9 +12,11 @@ INNER JOIN courses ON student_courses.course_id = courses.course_id;';
 $stmt = $con->prepare($sql);
 $stmt->execute();
 $user_data = $stmt->fetch();
+$_SESSION['user_data'] = $user_data;
 $user = $_SESSION['user'];
+
 //course_session
-$sql = 'SELECT course_name, course_level, course_img FROM users
+$sql = 'SELECT courses.course_id, course_name, course_level, course_img FROM users
 INNER JOIN student_courses ON users.user_id = student_courses.user_id 
 INNER JOIN courses ON student_courses.course_id = courses.course_id
 WHERE users.user_id = :user_id';
@@ -25,265 +28,170 @@ $stmt->bindParam(':user_id', $user['user_id'], PDO::PARAM_INT);
 $stmt->execute();
 $courses_data = $stmt->fetchALL();
 
+$sql = "SELECT 
+    c.course_id,
+    c.course_name,
+    a.assign_id,
+    a.assign_title,
+    a.end_date,
+    s.submission_id
+FROM student_courses sc
+JOIN courses c ON sc.course_id = c.course_id
+JOIN chapters ch ON c.course_id = ch.course_id
+JOIN course_contents cc ON ch.chapter_id = cc.chapter_id
+JOIN assignments a ON cc.content_id = a.content_id
+LEFT JOIN submissions s 
+    ON a.assign_id = s.assign_id AND s.user_id = sc.user_id
+WHERE sc.user_id = :user_id
+  AND (s.submission_id IS NULL OR s.submission_status = 0)
+  AND a.is_visible = 1
+ORDER BY c.course_name, a.end_date;
+";
+$stmt = $con->prepare($sql);
+$stmt->execute([':user_id' => $user['user_id']]);
+$assignments = $stmt->fetchAll();
 
+$datecheck = null;
 ?>
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SATITMOOCS</title>
-    <?php include "../includes/boostrap.php" ?>
-    <style>
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            font-family: 'Poppins', sans-serif;
-            background-color: #f0f4f8;
+    <title>Bootstrap Sidebar 1</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style2.css">
 
-            /* ใช้ฟอนต์ Poppins */
-        }
-
-        .web-header {
-            width: 100%;
-            height: 50px;
-            background-image: url("https://i.pinimg.com/originals/a0/84/65/a08465fcb5cb830adfcbcc3ae9ea1116.gif");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            /* ทำ parallax */
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            box-sizing: border-box;
-            color: #ffffff;
-        }
-
-
-
-
-        #user_img {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            padding: 3px;
-            /* ระยะห่างระหว่างรูปกับ gradient border */
-            background: linear-gradient(90deg, #00ff00ff, #94ccb8ff);
-            display: inline-block;
-        }
-
-        #user_img img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            display: block;
-            object-fit: cover;
-        }
-
-
-        .top {
-            background-color: #ffffffff;
-            /* box-shadow: 5px 25px 25px 25px rgba(0, 0, 0, 0.5); */
-            height: 80px;
-            display: flex;
-
-        }
-
-        .top img {
-            transform: translateY(-10px);
-        }
-
-        .course_box {
-            margin-top: 50px;
-            padding-left: 0;
-            margin-left: 50px;
-            width: 260px;
-            /* กินเต็มความกว้าง column */
-            height: 250px;
-            /* ความสูง fix ไว้ */
-            box-shadow: 2px 5px 20px 2px rgba(152, 167, 186, 0.5);
-            background-color: #ffffff;
-
-
-
-        }
-
-        .course_box img {
-
-            width: 260px;
-            height: 60%;
-            object-fit: cover;
-        }
-
-        nav {
-            margin-top: 5px;
-            padding-top: 30px;
-            display: flex;
-            flex-direction: column;
-            /* เรียงแนวตั้ง */
-            align-items: flex-start;
-            /* ชิดซ้าย */
-            gap: 10px;
-            background-color: #ffffff;
-            border-radius: 20px 20px 20px 20px;
-            height: 800px;
-            width: 500px;
-            position: relative;
-            /* จำเป็นสำหรับ ::after */
-            z-index: 2;
-            /* nav อยู่ด้านบน */
-        }
-
-
-
-
-        /* ซ่อน scrollbar ทั้งหมด */
-        ::-webkit-scrollbar {
-            display: none;
-        }
-
-        body {
-            -ms-overflow-style: none;
-            /* IE และ Edge เก่า */
-            scrollbar-width: none;
-            /* Firefox */
-        }
-
-
-
-        nav a {
-            margin-left: 20px;
-            text-decoration: none;
-            color: #333;
-            padding: 5px 0;
-        }
-
-        .nav-horizontal {
-            margin-top: 2px;
-            background-color: #ffffffff;
-
-            display: flex;
-            height: 50px;
-            align-items: center;
-
-            z-index: 2;
-        }
-
-        .nav-horizontal a {
-            margin: 50px;
-            text-decoration: none;
-            color: #000000ff;
-            padding: 5px 0;
-        }
-
-        #hideblock {
-            padding: 10px 20px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 500;
-            font-size: 16px;
-            color: #fff;
-            background: linear-gradient(90deg, #132469, #0157c1);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        #hideblock:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(90deg, #0157c1, #132469);
-        }
-
-        #hideblock:active {
-            transform: translateY(1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-    </style>
 </head>
 
 <body>
+    <?php include "../includes/nav.php" ?>
+    <div class="container-fluid p-0 d-flex h-100 mt-2 ">
+        <div id="bdSidebar" class="sidebar-custom d-flex flex-column flex-shrink-0 p-3 text-white offcanvas-md offcanvas-start rounded-start-4" style="width: 280px;">
+            <a href="#" class="navbar-brand">
+                <h5><i class="fa-solid fa-bomb me-2" style="font-size: 28px;"></i> Remote Dev</h5>
+            </a>
+            <hr>
+            <ul class="mynav nav nav-pills flex-column mb-auto">
+                <li class="nav-item mb-1">
+                    <a href="#" class="active">
+                        <i class="fa-solid fa-wave-square"></i>
+                        YOUR ASSIGMENTS
+                        <?php foreach ($assignments as $row): ?>
+                            <div class="mt-1" style="background-color: #8e6969ff;">
+                                <?php if ($datecheck == null || $datecheck != $row['end_date']): ?>
+                                    <?php $datecheck = $row['end_date']; ?>
+                                    <div >
+                                        <h6><?= "Assignment in " . formatDay($row['end_date']); ?></h6>
+                                    </div>
+                                <?php endif; ?>
+                                <a class="mt-1" href="assign_view.php?id=<?= $row['course_id'] ?>&assign_id=<?= $row['assign_id'] ?>" style="background-color: #ee46b6ff;">
+                                    <span><i class="bi bi-arrow-return-right"></i><?= $row['course_name'] ?> : <?= $row['assign_title'] ?><i class="bi bi-exclamation-octagon-fill ms-5"></i>
+                                </a>
+                            </div>
 
-    <div class="web-header" style="display: flex; align-items:center;">
-        <img src="../Uploads/profile_img/<?= $user_data['user_img'] ?>" id="user_img" alt="">
-        <h5 style="padding-left: 20px;">Welcome <?= $user_data['full_name'] ?></h5>
+                        <?php endforeach; ?>
+                    </a>
+                </li>
+                <li class="nav-item mb-1">
+                    <a href="#" class="">
+                        <i class="fa-solid fa-bell"></i>
+                        Notifications
+                        <span class="notification-badge">5</span>
+                    </a>
+                </li>
+                <li class="nav-item mb-1">
+                    <a href="#" class="">
+                        <i class="fa-solid fa-chart-simple"></i>
+                        Analytics
+                    </a>
+                </li>
+                <li class="nav-item mb-1">
+                    <a href="#" class="">
+                        <i class="fa-solid fa-star"></i>
+                        Saved Reports
+                    </a>
+                </li>
+                <li class="nav-item mb-1">
+                    <a href="#" class="">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        Orders
+                    </a>
+                </li>
+                <li class="nav-item mb-1">
+                    <a href="#" class="">
+                        <i class="fa-solid fa-user"></i>
+                        User Reports
+                    </a>
+                </li>
+            </ul>
+            <hr>
 
-        <div>
-            <a href=""></a>
         </div>
-    </div>
-    <div class="row top">
-        <div class="col-3 ps-5">
-            <img src="../assets/TSU_logo.png" alt="" style="width: 200px; height:100px;">
-        </div>
-        <div class="col-6">
 
-        </div>
-        <div class="col-3 mt-3">
-            <form action="">
-                <input type="text" placeholder="search">
-            </form>
-        </div>
-    </div>
-
-    <div class="row nav-horizontal">
-        <div class="col-10">
-            <a href="#">Home</a>
-            <a href="#">Dashboard</a>
-            <a href="#">Events</a>
-            <a href="#">Mycourse</a>
-            <a href="#">Tutorials</a>
-        </div>
-        <div class="col-2">
-            <button id="hideblock">Hide block</button>
-        </div>
-    </div>
-
-
-    <div class="container-fluid">
-        <div class="row">
-
-            <h3>Course overview</h3>
-            <!-- คอลัมน์เนื้อหา -->
-            <div class="col-10">
-                <div class="row g-3">
-                    <?php foreach ($courses_data as $course_data) : ?>
-                        <div class="col-3 course_box">
-                            <?php $img_path = "../Uploads/course_profile_img/" . $course_data['course_img']; ?>
-                            <?php if (!empty($course_data['course_img']) && file_exists($img_path)): ?>
-                                <img src="../Uploads/course_profile_img/<?= $course_data['course_img'] ?>" alt="">
-                                <h4><?= $course_data['course_name'] ?></h4>
-                            <?php else: ?>
-                                <img src="../Uploads/course_profile_img/default.jpg" alt="">
-                                <h4><?= $course_data['course_name'] ?></h4>
-                            <?php endif; ?>
-
-
-                        </div>
-                    <?php endforeach; ?>
-                </div>
+        <div class="bg-light flex-fill rounded-end-4">
+            <div class="p-2 d-md-none d-flex text-white bg-success">
+                <a href="#" class="text-white" data-bs-toggle="offcanvas" data-bs-target="#bdSidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </a>
+                <span class="ms-3">REMOTE DEV</span>
             </div>
-
-            <!-- คอลัมน์เมนู -->
-            <div class="col-2">
-                <nav>
-                    <a href="#">Home</a>
-                    <a href="#">Dashboard</a>
-                    <a href="#">Events</a>
-                    <a href="#">Mycourse</a>
-                    <a href="#">Tutorials</a>
+            <div class="p-4 main-box">
+                <nav style="--bs-breadcrumb-divider:'>';font-size:14px">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><i class="fa-solid fa-house"></i></li>
+                        <li class="breadcrumb-item">Dashboard</li>
+                        <li class="breadcrumb-item">Orders</li>
+                    </ol>
                 </nav>
+                <div class="d-flex justify-content-between">
+                    <h5>Orders</h5>
+                    <button class="btn btn-sm btn-light"><i class="fa-solid fa-download"></i> Download</button>
+                </div>
+                <hr>
+
+
+                <div class="col-md-11 mt-4 ms-md-5">
+                    <div class="course-head text-center mb-4">
+                        <h3>Course Overview</h3>
+                    </div>
+
+                    <div class="row g-3">
+                        <?php foreach ($courses_data as $course_data) : ?>
+                            <div class="col-6 col-sm-6 col-md-4 col-lg-3 course_box">
+                                <a href="course.php?id=<?= $course_data['course_id'] ?>" class="course_box" style="text-decoration: none; color: inherit;">
+                                    <?php $img_path = "../Uploads/course_profile_img/" . $course_data['course_img']; ?>
+                                    <div class="card shadow-sm">
+                                        <?php if (!empty($course_data['course_img']) && file_exists($img_path)): ?>
+                                            <img src="../Uploads/course_profile_img/<?= $course_data['course_img'] ?>" alt="" class="card-img-top">
+                                        <?php else: ?>
+                                            <img src="../Uploads/course_profile_img/default.jpg" alt="" class="card-img-top">
+                                        <?php endif; ?>
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title"><?= $course_data['course_name'] ?></h5>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
             </div>
+
+            <?php include "../includes/footer.php" ?>
+
+
+
         </div>
-    </div>
-
-
-
-
 </body>
 
 </html>
