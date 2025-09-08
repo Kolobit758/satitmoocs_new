@@ -94,6 +94,7 @@ if (isset($_GET['id'])) {
     <link rel="stylesheet" href="../styles/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Itim&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style2.css">
+    
 </head>
 
 <body>

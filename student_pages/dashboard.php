@@ -85,21 +85,24 @@ $datecheck = null;
                     <a href="#" class="active">
                         <i class="fa-solid fa-wave-square"></i>
                         YOUR ASSIGMENTS
-                        <?php foreach ($assignments as $row): ?>
-                            <div class="mt-1" style="background-color: #8e6969ff;">
-                                <?php if ($datecheck == null || $datecheck != $row['end_date']): ?>
-                                    <?php $datecheck = $row['end_date']; ?>
-                                    <div >
-                                        <h6><?= "Assignment in " . formatDay($row['end_date']); ?></h6>
-                                    </div>
-                                <?php endif; ?>
-                                <a class="mt-1" href="assign_view.php?id=<?= $row['course_id'] ?>&assign_id=<?= $row['assign_id'] ?>" style="background-color: #ee46b6ff;">
-                                    <span><i class="bi bi-arrow-return-right"></i><?= $row['course_name'] ?> : <?= $row['assign_title'] ?><i class="bi bi-exclamation-octagon-fill ms-5"></i>
-                                </a>
-                            </div>
 
-                        <?php endforeach; ?>
                     </a>
+                    <?php foreach ($assignments as $row): ?>
+                        <div class="mt-1">
+                            <?php if ($datecheck == null || $datecheck != $row['end_date']): ?>
+                                <?php $datecheck = $row['end_date']; ?>
+                                <div class="card" style="background-color: #c69e66ff;">
+                                    <div class="card-body">
+                                        <h6 style="color: #fffee8ff;"><i class="bi bi-calendar-x-fill"></i><?= " " . formatDay($row['end_date']); ?></h6>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                            <a class="mt-1" href="assign_view.php?id=<?= $row['course_id'] ?>&assign_id=<?= $row['assign_id'] ?>" style="background-color: #ee4670ff;">
+                                <span><i class="bi bi-arrow-return-right"></i> <?= $row['course_name'] ?> : <?= $row['assign_title'] ?><i class="bi bi-exclamation-octagon-fill ms-5"></i>
+                            </a>
+                        </div>
+
+                    <?php endforeach; ?>
                 </li>
                 <li class="nav-item mb-1">
                     <a href="#" class="">
@@ -142,7 +145,7 @@ $datecheck = null;
                 <a href="#" class="text-white" data-bs-toggle="offcanvas" data-bs-target="#bdSidebar">
                     <i class="fa-solid fa-bars"></i>
                 </a>
-                <span class="ms-3">REMOTE DEV</span>
+                <span class="ms-3">kobchok studio</span>
             </div>
             <div class="p-4 main-box">
                 <nav style="--bs-breadcrumb-divider:'>';font-size:14px">

@@ -57,16 +57,29 @@ $assignments = $stmt->fetch();
     <?php include "../includes/boostrap.php" ?>
     <link href="https://fonts.googleapis.com/css2?family=Itim&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style2.css">
+    <style>
+        body,
+        html {
+            background: linear-gradient(160deg, #000000ff, #3f4457ff);
+        }
+
+        .my-top-nav::before {
+            content: "";
+            height: 200px;
+            width: 100%;
+        }
+       
+    </style>
 </head>
 
 <body>
-    <?php include "../includes/nav_normal.php" ?>
+    <?php include "../includes/nav.php" ?>
 
     <?php if ($submission != null) : ?>
-        <div class="container mt-5">
+        <div class="container mt-5 mb-5 card">
 
 
-            <form action="submission.php" method="post" enctype="multipart/form-data">
+            <form class="card-body" action="submission.php" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="course_id" value="<?= htmlspecialchars($course_id) ?>">
                 <input type="hidden" name="assign_id" value="<?= htmlspecialchars($assign_id) ?>">
                 <input type="hidden" name="user_id" value="<?= htmlspecialchars($user['user_id'] ?? 0) ?>">
@@ -85,12 +98,13 @@ $assignments = $stmt->fetch();
                     <label for="file" class="form-label">เลือกไฟล์</label>
                     <input type="file" name="file" id="file" class="form-control" required>
                     <a href="<?= $submission['file_path'] ?>" download><?= $submission['file_name'] ?></a>
-                    
+
                 </div>
 
                 <div class="mb-3">
                     <label for="submission_text" class="form-label">ข้อความเพิ่มเติม</label>
                     <input type="text" name="submission_text" id="submission_text" class="form-control">
+                    <textarea name="submission_text" id="submission_text" class="form-control"></textarea>
                 </div>
 
                 <button type="submit" name="action" value="update" class="btn btn-success">Update</button>
@@ -98,8 +112,8 @@ $assignments = $stmt->fetch();
 
         </div>
     <?php else: ?>
-        <div class="container mt-5">
-            <form action="submission.php" method="post" enctype="multipart/form-data">
+        <div class="container mt-5 mb-5 card">
+            <form class="card-body" action="submission.php" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="course_id" value="<?= htmlspecialchars($course_id) ?>">
                 <input type="hidden" name="assign_id" value="<?= htmlspecialchars($assign_id) ?>">
                 <input type="hidden" name="user_id" value="<?= htmlspecialchars($user['user_id'] ?? 0) ?>">
@@ -123,7 +137,7 @@ $assignments = $stmt->fetch();
                     <label for="submission_text" class="form-label">ข้อความเพิ่มเติม</label>
                     <input type="text" name="submission_text" id="submission_text" class="form-control">
                 </div>
-                <?php if(checkDueTime($assignments['end_date'])): ?>
+                <?php if (checkDueTime($assignments['end_date'])): ?>
                     <button type="submit" name="action" value="insert" class="btn btn-danger">Submit</button>
                 <?php else: ?>
                     <button type="submit" name="action" value="insert" class="btn btn-warning">Submit</button>
