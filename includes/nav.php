@@ -1,8 +1,7 @@
 <nav class="navbar navbar-expand-lg navbar-light fixed-top rounded-5 rounded-top-0" 
      style="height: 100px; border:4px solid #d1d1d1ff ; background-color: #e6e6e6ff; z-index: 1030; box-shadow: 5px 5px 50px rgba(86, 88, 216, 0.88);">
     <div class="container-fluid">
-        <img class="navbar-brand" src="../Uploads/profile_img/<?= $user_data['user_img'] ?>" id="user_img">
-        
+        <img class="navbar-brand" src="../Uploads/profile_img/<?= $_SESSION['user']['user_img'] ?>" id="user_img">
         <!-- burger button -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" 
@@ -51,3 +50,4 @@
         </div>
     </div>
 </div>
+

@@ -19,6 +19,7 @@ if (isset($_GET['id'])) {
         course_contents.detail AS course_contents_detail, 
         course_contents.created_at, 
         course_contents.is_visible,
+        empolyee_role.useripass,
 
         -- uploads
         employee_uploads.upload_id,
@@ -33,10 +34,12 @@ if (isset($_GET['id'])) {
         assignments.max_score
 
     FROM courses 
-    INNER JOIN student_courses 
-        ON student_courses.course_id = courses.course_id 
+    INNER JOIN employee_course 
+        ON employee_course.course_id = courses.course_id 
     INNER JOIN chapters 
         ON courses.course_id = chapters.course_id 
+    INNER JOIN empolyee_role
+        ON empolyee_role.useripass = employee_course.useripass
     INNER JOIN course_contents 
         ON course_contents.chapter_id = chapters.chapter_id 
 
@@ -45,7 +48,7 @@ if (isset($_GET['id'])) {
     LEFT JOIN assignments 
         ON assignments.content_id = course_contents.content_id
 
-    WHERE student_courses.user_id = :user_id 
+    WHERE empolyee_role.user_id = :user_id 
     AND courses.course_id = :course_id
     ORDER BY chapters.chapter_id, course_contents.content_id;
     ";
