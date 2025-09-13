@@ -96,12 +96,143 @@ if (isset($_GET['id'])) {
     <?php include "../includes/boostrap.php" ?>
     <link rel="stylesheet" href="../styles/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Itim&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../styles/style.css">
-    
+    <style>
+        .tools {
+            position: fixed;
+            right: 20px;
+            /* ถ้าอยากอยู่มุมขวาล่าง */
+            bottom: 40px;
+            width: 80px;
+            height: 80px;
+            background-color: #720000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 2px 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .filetool {
+            position: fixed;
+            right: 20px;
+            /* ถ้าอยากอยู่มุมขวาล่าง */
+            bottom: 160px;
+            width: 80px;
+            height: 80px;
+            background-color: #720000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 2px 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .chaptertool{
+            position: fixed;
+            right: 20px;
+            /* ถ้าอยากอยู่มุมขวาล่าง */
+            bottom: 500px;
+            width: 80px;
+            height: 80px;
+            background-color: #720000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 2px 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .tools i {
+            font-size: 40px;
+            color: white;
+            transition: transform 0.5s ease;
+            /* สำหรับหมุน */
+        }
+
+        /* Hover → icon หมุน */
+        .tools:hover i {
+            transform: rotate(360deg);
+        }
+
+        /* Tooltip */
+        .assigntool::after {
+            content: "Add more assignments";
+            /* ข้อความ */
+            position: absolute;
+            bottom: 100%;
+            /* อยู่เหนือปุ่ม */
+            right: 50%;
+            transform: translateX(50%);
+            background: #720000;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 2px solid #ffffff;
+            font-size: 14px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .filetool::after {
+            content: "Add more file";
+            /* ข้อความ */
+            position: absolute;
+            bottom: 100%;
+            /* อยู่เหนือปุ่ม */
+            right: 50%;
+            transform: translateX(50%);
+            background: #720000;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 2px solid #ffffff;
+            font-size: 14px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+
+        /* ให้ tooltip โผล่เวลา hover */
+        .tools assigntool:hover::after {
+            opacity: 1;
+            transform: translateX(-30px) translateY(60px);
+        }
+    </style>
 </head>
 
 <body>
     <?php include "../includes/nav.php"; ?>
+
+    <!-- ปุ่ม Assignment -->
+    <a class="tools chaptertool"
+        href="add_content.php?id=<?= $course_id ?>&user_id=<?= $user['user_id'] ?>&action=add_chapter">
+        <i class="bi bi-wrench-adjustable-circle fs-1"></i>
+    </a>
+
+    <!-- ปุ่ม File -->
+    <a class="tools assigntool"
+        href="add_content.php?id=<?= $course_id ?>&user_id=<?= $user['user_id'] ?>&action=add_assignment">
+        <i class="bi bi-file-earmark-plus fs-1"></i>
+    </a>
+    <a class="tools filetool"
+        href="add_content.php?id=<?= $course_id ?>&user_id=<?= $user['user_id'] ?>&action=add_file">
+        <i class="bi bi-file-earmark-plus fs-1"></i>
+    </a>
+
     <div class="container-fluid mt-5">
         <div class="row justify-content-center">
             <div class="col-md-10">
@@ -136,7 +267,7 @@ if (isset($_GET['id'])) {
                 <?php else: ?>
                     <a href="assign_view.php?id=<?= $course_id ?>&assign_id=<?= $row['assign_id'] ?>">
                         <?php if (checkDueTime($row['end_date'])): ?>
-                            <button class="btn btn-danger">Add submission</button>
+                            <button class="btn btn-danger">View student</button>
                         <?php else: ?>
                             <button class="btn btn-warning">Add submission</button>
                         <?php endif; ?>
