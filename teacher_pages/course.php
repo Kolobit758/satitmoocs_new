@@ -40,7 +40,7 @@ if (isset($_GET['id'])) {
         ON courses.course_id = chapters.course_id 
     INNER JOIN empolyee_role
         ON empolyee_role.useripass = employee_course.useripass
-    INNER JOIN course_contents 
+    LEFT JOIN course_contents 
         ON course_contents.chapter_id = chapters.chapter_id 
 
     LEFT JOIN employee_uploads 
@@ -75,11 +75,6 @@ if (isset($_GET['id'])) {
     $current_chapter = null;
 
 
-
-    if (!$courses) {
-        echo "ไม่พบข้อมูลคอร์สนี้";
-        exit;
-    }
 } else {
     echo "ไม่พบรหัสคอร์ส";
     exit;
@@ -99,7 +94,12 @@ if (isset($_GET['id'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../styles/style.css">
     <style>
-        .tools {
+        html,
+        body {
+            background-color: #fff8e2ff;
+        }
+
+        .chaptertool {
             position: fixed;
             right: 20px;
             /* ถ้าอยากอยู่มุมขวาล่าง */
@@ -117,40 +117,6 @@ if (isset($_GET['id'])) {
             transition: transform 0.3s ease;
         }
 
-        .filetool {
-            position: fixed;
-            right: 20px;
-            /* ถ้าอยากอยู่มุมขวาล่าง */
-            bottom: 160px;
-            width: 80px;
-            height: 80px;
-            background-color: #720000;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 2px 5px 15px rgba(0, 0, 0, 0.3);
-            z-index: 2000;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-        .chaptertool{
-            position: fixed;
-            right: 20px;
-            /* ถ้าอยากอยู่มุมขวาล่าง */
-            bottom: 500px;
-            width: 80px;
-            height: 80px;
-            background-color: #720000;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 2px 5px 15px rgba(0, 0, 0, 0.3);
-            z-index: 2000;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
 
         .tools i {
             font-size: 40px;
@@ -164,47 +130,6 @@ if (isset($_GET['id'])) {
             transform: rotate(360deg);
         }
 
-        /* Tooltip */
-        .assigntool::after {
-            content: "Add more assignments";
-            /* ข้อความ */
-            position: absolute;
-            bottom: 100%;
-            /* อยู่เหนือปุ่ม */
-            right: 50%;
-            transform: translateX(50%);
-            background: #720000;
-            color: #fff;
-            padding: 6px 10px;
-            border-radius: 6px;
-            border: 2px solid #ffffff;
-            font-size: 14px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-
-        .filetool::after {
-            content: "Add more file";
-            /* ข้อความ */
-            position: absolute;
-            bottom: 100%;
-            /* อยู่เหนือปุ่ม */
-            right: 50%;
-            transform: translateX(50%);
-            background: #720000;
-            color: #fff;
-            padding: 6px 10px;
-            border-radius: 6px;
-            border: 2px solid #ffffff;
-            font-size: 14px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-        
 
         /* ให้ tooltip โผล่เวลา hover */
         .tools assigntool:hover::after {
@@ -217,77 +142,92 @@ if (isset($_GET['id'])) {
 <body>
     <?php include "../includes/nav.php"; ?>
 
-    <!-- ปุ่ม Assignment -->
-    <a class="tools chaptertool"
-        href="add_content.php?id=<?= $course_id ?>&user_id=<?= $user['user_id'] ?>&action=add_chapter">
-        <i class="bi bi-wrench-adjustable-circle fs-1"></i>
-    </a>
+    <?php if ($courses): ?>
+        <!-- ปุ่ม Assignment -->
+        <a class="tools chaptertool"
+            href="add_content.php?id=<?= $course_id ?>&user_id=<?= $user['user_id'] ?>&action=add_chapter">
+            <i class="bi bi-wrench-adjustable-circle fs-1"></i>
+        </a>
 
-    <!-- ปุ่ม File -->
-    <a class="tools assigntool"
-        href="add_content.php?id=<?= $course_id ?>&user_id=<?= $user['user_id'] ?>&action=add_assignment">
-        <i class="bi bi-file-earmark-plus fs-1"></i>
-    </a>
-    <a class="tools filetool"
-        href="add_content.php?id=<?= $course_id ?>&user_id=<?= $user['user_id'] ?>&action=add_file">
-        <i class="bi bi-file-earmark-plus fs-1"></i>
-    </a>
+        <!-- ปุ่ม File -->
 
-    <div class="container-fluid mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <?php foreach ($courses as $row) : ?>
-                    <?php if ($current_chapter !== $row['chapter_title']): ?>
-                        <?php if ($current_chapter !== null): ?>
-            </div> <!-- ปิด div chapter ก่อนหน้า -->
-        <?php endif; ?>
 
-        <!-- เริ่ม chapter ใหม่ -->
-        <div class="chapter" style="border:5px dotted #e3e3e3ff; margin:15px 0; padding:20px; border-radius:0px; background-color: #ffffffff;">
-            <h3 style="margin:0; color:#2c3e50;" class="chapter-title">
-                <?= htmlspecialchars($row['chapter_title']); ?>
-            </h3>
-        <?php endif; ?>
-
-        <!-- เนื้อหาใน chapter -->
-        <div class="content mt-2 p-md-3 p-2" style="margin-left:20px; padding:5px 0;  box-shadow:5px 2px 10px 0px #cdd2b544; background-color: #ffffff52;">
-            <p><strong><?= htmlspecialchars($row['course_contents_title']); ?></strong></p>
-            <!-- เช็คว่ามีไฟล์แนบมามั้ย -->
-            <?php if (!empty($row['file_path'])): ?>
-                <a href="../Uploads/PDF_file_path/<?= $row['file_path'] ?>" download style="color:#3498db; text-decoration:none;">
-                    📂 ดาวน์โหลดไฟล์
-                </a>
+        <div class="container-fluid mt-5">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <?php foreach ($courses as $row) : ?>
+                        <?php if ($current_chapter !== $row['chapter_title']): ?>
+                            <?php if ($current_chapter !== null): ?>
+                </div> <!-- ปิด div chapter ก่อนหน้า -->
             <?php endif; ?>
-            <!-- เช็คว่ามี id กล่องส่งงานมั้ย -->
-            <?php if (!empty($row['assign_id'])): ?>
-                <?php if (isset($submissionSlice[$row['assign_id']]) && !empty($submissionSlice[$row['assign_id']]['submission_status']) && $submissionSlice[$row['assign_id']]['submission_status'] == 1): ?>
-                    <a href="assign_view.php?id=<?= $course_id ?>&assign_id=<?= $row['assign_id'] ?>">
-                        <button class="btn btn-success">Update submission</button>
-                    </a>
-                <?php else: ?>
-                    <a href="assign_view.php?id=<?= $course_id ?>&assign_id=<?= $row['assign_id'] ?>">
-                        <?php if (checkDueTime($row['end_date'])): ?>
-                            <button class="btn btn-danger">View student</button>
-                        <?php else: ?>
-                            <button class="btn btn-warning">Add submission</button>
-                        <?php endif; ?>
+
+            <!-- เริ่ม chapter ใหม่ -->
+            <div class="chapter" style="border:5px dotted #e3e3e3ff; margin:15px 0; padding:20px; border-radius:0px; background-color: #ffffffff;">
+
+                <div class="card" style="background-color: #2c3e50;">
+                    <h3 style="background-color: #faa161ff;" class="chapter-title text-light rounded-0">
+                        <?= htmlspecialchars($row['chapter_title']); ?>
+                    </h3>
+                    <div class="d-flex justify-content-around card-body">
+                        <a class="tool btn btn-success rounded-5 "
+                            href="add_content.php?id=<?= $course_id ?>&user_id=<?= $user['user_id'] ?>&action=add_assignment&chapter_id=<?=$row['chapter_id']?>">
+                            <i class="bi bi-file-earmark-plus fs-6"></i>
+                        </a>
+                        <a class="tool btn btn-success rounded-5 "
+                            href="add_content.php?id=<?= $course_id ?>&user_id=<?= $user['user_id'] ?>&action=add_file&chapter_id=<?=$row['chapter_id']?>">
+                            <i class="bi bi-file-earmark-plus fs-6"></i>
+                        </a>
+                    </div>
+                </div>
+
+            <?php endif; ?>
+
+            <!-- เนื้อหาใน chapter -->
+            <div class="content mt-2 p-md-3 p-2" style="margin-left:20px; padding:5px 0;  box-shadow:5px 2px 10px 0px #cdd2b544; background-color: #ffffff52;">
+                <p><strong><?= htmlspecialchars($row['course_contents_title']); ?></strong></p>
+                <!-- เช็คว่ามีไฟล์แนบมามั้ย -->
+                <?php if (!empty($row['file_path'])): ?>
+                    <a href="../Uploads/upload_file/<?= $row['file_path'] ?>" download style="color:#3498db; text-decoration:none;">
+                        📂 ดาวน์โหลดไฟล์
                     </a>
                 <?php endif; ?>
-            <?php endif; ?>
+                <!-- เช็คว่ามี id กล่องส่งงานมั้ย -->
+                <?php if (!empty($row['assign_id'])): ?>
+                    <?php if (isset($submissionSlice[$row['assign_id']]) && !empty($submissionSlice[$row['assign_id']]['submission_status']) && $submissionSlice[$row['assign_id']]['submission_status'] == 1): ?>
+                        <a href="assign_view.php?id=<?= $course_id ?>&assign_id=<?= $row['assign_id'] ?>">
+                            <button class="btn btn-success">Update submission</button>
+                        </a>
+                    <?php else: ?>
+                        <a href="assign_view.php?id=<?= $course_id ?>&assign_id=<?= $row['assign_id'] ?>">
+                            <?php if (checkDueTime($row['end_date'])): ?>
+                                <button class="btn btn-danger">View student</button>
+                            <?php else: ?>
+                                <button class="btn btn-warning">Add submission</button>
+                            <?php endif; ?>
+                        </a>
+                    <?php endif; ?>
+                <?php endif; ?>
 
 
+            </div>
+
+            <?php $current_chapter = $row['chapter_title']; ?>
+        <?php endforeach; ?>
+
+        <?php if ($current_chapter !== null): ?>
+            </div> <!-- ปิด div chapter สุดท้าย -->
+        <?php endif; ?>
+            </div>
         </div>
 
-        <?php $current_chapter = $row['chapter_title']; ?>
-    <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <a class="tools chaptertool"
+            href="add_content.php?id=<?= $course_id ?>&user_id=<?= $user['user_id'] ?>&action=add_chapter">
+            <i class="bi bi-wrench-adjustable-circle fs-1"></i>
+        </a>
 
-    <?php if ($current_chapter !== null): ?>
-        </div> <!-- ปิด div chapter สุดท้าย -->
     <?php endif; ?>
-        </div>
-    </div>
-
-    </div>
 </body>
 
 </html>

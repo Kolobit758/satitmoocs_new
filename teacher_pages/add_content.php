@@ -1,15 +1,31 @@
 <?php
-
 session_start();
 include "../includes/db.php";
 
-$course_id = $_GET['id'];
-$user_id = $_GET['user_id'];
-$action = $_GET['action'];
+$course_id = $_GET['id'] ?? null;
+$user_id   = $_GET['user_id'] ?? null;
+$action    = $_GET['action'] ?? null;
+$chapter_id = $_GET['chapter_id'] ?? null;
 
+if (isset($_GET['content_name']) && isset($_GET['description'])) {
+    $title       = $_GET['content_name'];
+    $description = $_GET['description'];
+    $course_id_real = $_GET['id'];
+    // insert chapter
+    $sql = 'INSERT INTO chapters (course_id, title, description) 
+            VALUES (:course_id, :title, :description)';
+    $stmt = $con->prepare($sql);
+    $stmt->execute([
+        ':course_id'   => $course_id_real,
+        ':title'       => $title,
+        ':description' => $description
+    ]);
 
-
+    header("Location: course.php?id=$course_id");
+    exit();
+}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -41,15 +57,15 @@ $action = $_GET['action'];
     <?php if ($action == "add_chapter"): ?>
         <div class="container mt-5 mb-5">
             <div class="card p-5">
-                <form class="card-body" action="">
+                <form class="card-body" action="add_content.php">
                     <div class="mb-3">
-                        <label for="exampleInputEmail1" class="form-label">Email address</label>
-                        <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
-                        <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="exampleInputPassword1" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="exampleInputPassword1">
+                        <input type="text" hidden name="id" value="<?= $course_id ?>">
+                        <label for="exampleInputEmail1" class="form-label">Content name</label>
+                        <input name="content_name" class="form-control">
+                        <div id="emailHelp" class="form-text">enter the new content name.</div>
+                        <label for="exampleInputEmail1" class="form-label">Description</label>
+                        <input name="description" class="form-control">
+                        <div id="emailHelp" class="form-text">enter description.</div>
                     </div>
                     <button type="submit" name="action" value="add_chapter" class="btn btn-primary">Submit</button>
                 </form>
@@ -57,8 +73,47 @@ $action = $_GET['action'];
         </div>
     <?php else: ?>
         <?php if ($action == "add_assignment"): ?>
+            <div class="container mt-5 mb-5">
+                <div class="card p-5">
+                    <form class="card-body" action="upload_and_assign.php" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <input type="text" hidden name="id" value="<?= $course_id ?>">
+                            <input type="text" hidden name="chapter_id" value="<?= $chapter_id ?>">
+                            <input hidden name="content_type" value="1">
+                            <label class="form-label">Upload file</label>
+                            <input type="file" name="file" class="form-control">
+                            <label class="form-label">Description</label>
+                            <input name="description" class="form-control">
+                        </div>
+                        <button type="submit" name="action" value="add_chapter" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
         <?php else: ?>
-
+            <div class="container mt-5 mb-5">
+                <div class="card p-5">
+                    <form class="card-body" action="upload_and_assign.php" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <input type="text" hidden name="id" value="<?= $course_id ?>">
+                            <input type="text" hidden name="chapter_id" value="<?= $chapter_id ?>">
+                            <input hidden name="content_type" value="2">
+                            <label class="form-label">Upload file</label>
+                            <input type="file" name="file" class="form-control">
+                            <label class="form-label">Description</label>
+                            <input name="description" class="form-control">
+                            <label class="form-label">start_date</label>
+                            <input type="date" name="start_date" class="form-control">
+                            <label class="form-label">Due_date</label>
+                            <input type="date" name="end_date" class="form-control">
+                            <label class="form-label">Assign_title</label>
+                            <input name="assign_title" class="form-control">
+                            <label class="form-label">Group member</label>
+                            <input name="group_member" class="form-control" placeholder="Enter number of group member or if it is solo work you can skip this box">
+                        </div>
+                        <button type="submit" name="action" value="add_assignment" class="btn btn-primary">Submit</button>
+                    </form>
+                </div>
+            </div>
         <?php endif; ?>
     <?php endif; ?>
 </body>

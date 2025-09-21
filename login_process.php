@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['full_name'] = $user['full_name'];
 
     // ตรวจสอบ role
-    $stmtRole = $con->prepare("SELECT role FROM empolyee_role WHERE user_id = :user_id");
+    $stmtRole = $con->prepare("SELECT * FROM empolyee_role WHERE user_id = :user_id");
     $stmtRole->execute([':user_id' => $user['user_id']]);
     $userdata = $stmtRole->fetch(PDO::FETCH_ASSOC);
 
@@ -37,11 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($userdata['role'] == 1) {
             // ครู
             $_SESSION['user'] = $user;
+            $_SESSION['userdata'] = $userdata;
             header("Location: teacher_pages/dashboard.php");
             exit;
         } else if ($userdata['role'] == 2) {
             // admin
             $_SESSION['user'] = $user;
+            $_SESSION['userdata'] = $userdata;
             header("Location: dashboard.php");
             exit;
         }
